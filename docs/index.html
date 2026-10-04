@@ -3,180 +3,173 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LoadMate - Caravan Loading App</title>
-  <style>
-:root {
-  --bg: #f6f8fb;
-  --card: #ffffff;
-  --text: #182033;
-  --muted: #5f6b7a;
-  --accent: #1f6feb;
-  --accent-dark: #174ea6;
-  --border: #d8dee9;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-}
-
-header {
-  background: linear-gradient(135deg, #182033, #1f6feb);
-  color: white;
-  padding: 40px 20px;
-  text-align: center;
-}
-
-header h1 {
-  margin: 0 0 8px;
-  font-size: 2.4rem;
-}
-
-header p {
-  margin: 0;
-  color: #e8eef8;
-  font-size: 1.1rem;
-}
-
-nav {
-  background: white;
-  border-bottom: 1px solid var(--border);
-  padding: 12px 20px;
-  text-align: center;
-}
-
-nav a {
-  color: var(--accent);
-  text-decoration: none;
-  margin: 0 12px;
-  font-weight: 600;
-}
-
-nav a:hover {
-  text-decoration: underline;
-}
-
-main {
-  max-width: 920px;
-  margin: 32px auto;
-  padding: 0 20px;
-}
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 24px rgba(24, 32, 51, 0.06);
-}
-
-h2 {
-  margin-top: 0;
-  color: var(--text);
-}
-
-.button {
-  display: inline-block;
-  background: var(--accent);
-  color: white;
-  padding: 12px 18px;
-  border-radius: 10px;
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.button:hover {
-  background: var(--accent-dark);
-}
-
-.notice {
-  background: #fff8e6;
-  border: 1px solid #f1d48a;
-  border-radius: 12px;
-  padding: 16px;
-  color: #594300;
-}
-
-footer {
-  text-align: center;
-  padding: 32px 20px;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-ul {
-  padding-left: 22px;
-}
-
-.meta {
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-@media (max-width: 640px) {
-  header h1 {
-    font-size: 2rem;
-  }
-
-  nav a {
-    display: inline-block;
-    margin: 6px 8px;
-  }
-
-  .card {
-    padding: 22px;
-  }
-}
-</style>
+  <title>Lyneqo Tub — Water readings, treatments and use</title>
+  <meta name="description" content="Keep a simple record of hot-tub water readings, treatments and use, with a clear view of what needs attention next.">
+  <link rel="icon" href="assets/lyneqo-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>LoadMate</h1>
-    <p>Caravan loading and weight planning</p>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/app-icon.png" alt="" width="36" height="36">
+        Lyneqo Tub
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="support.html">Support</a>
+        <a href="eula.html">EULA</a>
+        <a href="https://lyneqo.com/">Lyneqo</a>
+      </nav>
+    </div>
   </header>
 
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="privacy.html">Privacy</a>
-    <a href="support.html">Support</a>
-    <a href="eula.html">EULA</a>
-  </nav>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="brand-hero">Lyneqo</p>
+        <p class="eyebrow">Hot tub</p>
+        <h1>See what the water needs next</h1>
+        <p class="hero-lead">Keep a simple record of water readings, treatments and use, with a clear view of what needs attention next.</p>
+        <div class="cta-row">
+          <a class="button" href="support.html">Get support</a>
+          <a class="button button-secondary" href="https://lyneqo.com/#apps">All Lyneqo apps</a>
+        </div>
+        <div class="trust" aria-label="Product promises">
+          <span>No account</span>
+          <span>No ads</span>
+          <span>Syncs with your iCloud</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="phone-frame">
+          <img src="assets/shot-home.png" alt="Lyneqo Tub Home screen showing today’s water test, chlorine, pH and reminders">
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <main>
-    <section class="card">
-      <h2>Plan your caravan load with more confidence</h2>
-      <p>LoadMate is a simple caravan and Motorhome loading and weight planning app designed to help owners think clearly about payload, loading positions, nose weight and overall caravan and Motorhome balancing.</p>
-      <p>The app is intended as a practical planning aid. It does not replace manufacturer limits, legal requirements, weighbridge measurements or professional towing advice.</p>
-      <p><a class="button" href="support.html">Get Support</a></p>
-    </section>
+  <section class="section" id="screens">
+    <div class="section-head">
+      <h2>The same screens you use in the app</h2>
+      <p>Home, Insights and History — readings, trends and the record behind them.</p>
+    </div>
+    <div class="gallery gallery-pad">
+      <figure>
+        <img src="assets/shot-home.png" alt="Home screen with the latest chlorine and pH readings, quick actions and reminders">
+        <figcaption>Home</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/shot-insights.png" alt="Insights screen with monthly chlorine and pH charts and hot tub use">
+        <figcaption>Insights</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/shot-history.png" alt="History screen editing a full water check, including chlorine, alkalinity and copper">
+        <figcaption>History</figcaption>
+      </figure>
+    </div>
+  </section>
 
-    <section class="card">
-      <h2>What LoadMate helps with</h2>
-      <ul>
-        <li>Record caravan/Motorhome loading information.</li>
-        <li>Plan where items are positioned.</li>
-        <li>Review estimated loading impact before travelling.</li>
-        <li>Keep key caravan weight information in one place.</li>
-      </ul>
-    </section>
+  <section class="section" id="features" style="padding-top: 8px;">
+    <div class="section-head">
+      <h2>A clear record of the tub</h2>
+      <p>Log what you test, what you do, and when the next check is due.</p>
+    </div>
+    <div class="feature-list">
+      <article class="feature-row">
+        <div class="icon-tile icon-teal" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3c4 4 6 7 6 10a6 6 0 0 1-12 0c0-3 2-6 6-10z"></path></svg>
+        </div>
+        <div>
+          <h3>Water tests</h3>
+          <p>Record free chlorine and pH, and see them against the target ranges you saved.</p>
+        </div>
+      </article>
+      <article class="feature-row">
+        <div class="icon-tile icon-cyan" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9 3h6"></path><path d="M10 3v5l-5 9a4 4 0 0 0 3.5 6h7a4 4 0 0 0 3.5-6l-5-9V3"></path></svg>
+        </div>
+        <div>
+          <h3>Full water check</h3>
+          <p>Keep combined chlorine, total chlorine, alkalinity, copper, clarity and foam with the rest of the log.</p>
+        </div>
+      </article>
+      <article class="feature-row">
+        <div class="icon-tile icon-green" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 19V9"></path><path d="M10 19V5"></path><path d="M16 19v-7"></path><path d="M22 19V8"></path></svg>
+        </div>
+        <div>
+          <h3>Insights</h3>
+          <p>Look across a week, a month or three months and see which readings sat inside the range you chose.</p>
+        </div>
+      </article>
+      <article class="feature-row">
+        <div class="icon-tile icon-purple" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v5l3 2"></path></svg>
+        </div>
+        <div>
+          <h3>History</h3>
+          <p>Open any day, review the readings, and correct a water check when something was entered wrong.</p>
+        </div>
+      </article>
+      <article class="feature-row">
+        <div class="icon-tile icon-orange" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M8 11a3 3 0 1 0-2.8 4H8"></path><path d="M16 11a3 3 0 1 1 2.8 4H16"></path><path d="M8 15h8"></path></svg>
+        </div>
+        <div>
+          <h3>Use and care</h3>
+          <p>Log who used the tub and for how long, and record cleaning, filter rinses and repairs.</p>
+        </div>
+      </article>
+      <article class="feature-row">
+        <div class="icon-tile icon-aqua" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 7 3 7H3s3 0 3-7"></path><path d="M10 19a2 2 0 0 0 4 0"></path></svg>
+        </div>
+        <div>
+          <h3>Reminders</h3>
+          <p>See when the next water test, full check or filter rinse is due, on the device you already use.</p>
+        </div>
+      </article>
+    </div>
+  </section>
 
-    <section class="card">
-      <h2>Privacy-first design</h2>
-      <p>LoadMate does not require an account and is designed for local use on your device.</p>
-      <p><a href="privacy.html">Read the privacy policy</a></p>
-    </section>
+  <section class="section" style="padding-top: 8px;">
+    <div class="split">
+      <div class="panel">
+        <h2>Private by default</h2>
+        <p>Lyneqo Tub does not ask you to create an account and does not show ads. Readings stay on your devices and in your own iCloud. They are not sent to Curley Brackets Engineering.</p>
+        <div class="pill-list">
+          <span>No account</span>
+          <span>No ads</span>
+          <span>Your iCloud</span>
+        </div>
+        <p style="margin-top: 18px;"><a class="button button-secondary" href="privacy.html">Read the privacy policy</a></p>
+      </div>
+      <div class="device-shot">
+        <img src="assets/shot-insights.png" alt="Monthly insights for chlorine and pH">
+      </div>
+    </div>
+  </section>
 
-  </main>
+  <section class="section" style="padding-top: 0;">
+    <div class="panel notice">
+      <h2>A log, not chemical advice</h2>
+      <p>Lyneqo Tub records the readings and care you enter and compares them with the targets you saved. It does not recommend doses. Follow your hot tub manufacturer and the instructions on the products you use.</p>
+    </div>
+  </section>
 
-  <footer>
+  <footer class="site-footer">
+    <nav aria-label="Footer">
+      <a href="index.html">Home</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="support.html">Support</a>
+      <a href="eula.html">EULA</a>
+      <a href="https://lyneqo.com/">Lyneqo</a>
+    </nav>
     <p>&copy; 2026 Curley Brackets Engineering. All rights reserved.</p>
   </footer>
 </body>
