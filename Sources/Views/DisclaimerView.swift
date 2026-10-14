@@ -125,9 +125,9 @@ struct DisclaimerScrollContent: View {
                 )
             }
 
-            DisclaimerSection(title: "No Data Collection") {
+            DisclaimerSection(title: "Your Data") {
                 Text(
-                    "This app does not collect, store, transmit, or access any personal data. All information entered remains on your device only."
+                    "This app does not require an account with Curley Brackets Engineering, and we do not collect, receive, or access what you enter. Readings, treatments, usage, reminders, and target ranges are stored on this device and, when iCloud is available, synced through your personal iCloud account so they can appear on your other Apple devices. That sync is handled by Apple."
                 )
             }
 
