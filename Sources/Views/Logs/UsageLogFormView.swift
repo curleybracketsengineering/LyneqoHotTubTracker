@@ -37,15 +37,7 @@ struct UsageLogFormView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.section) {
                 AppFormScreenSection(title: "When", presentedHelp: $presentedHelp) {
-                    DatePicker(
-                        "Date & time",
-                        selection: $loggedAt,
-                        in: ...FormValidation.latestLoggableMoment(),
-                        displayedComponents: [.date, .hourAndMinute]
-                    )
-                    .datePickerStyle(.compact)
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    AppLogDateTimePicker(selection: $loggedAt)
                 }
 
                 AppFormScreenSection(title: "Session", presentedHelp: $presentedHelp) {

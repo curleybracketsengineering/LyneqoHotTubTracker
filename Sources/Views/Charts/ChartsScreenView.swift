@@ -20,36 +20,6 @@ private struct UserBarPoint: Identifiable {
     let count: Int
 }
 
-private struct ChemistryPeriodSummary {
-    let testsRecorded: Int
-    let phReadingCount: Int
-    let phLowCount: Int
-    let phHighCount: Int
-    let sanitizerReadingCount: Int
-    let sanitizerLowCount: Int
-    let sanitizerHighCount: Int
-}
-
-private enum ChemistryRangePosition {
-    case inRange
-    case below
-    case above
-
-    static func from(value: Double, ideal: ClosedRange<Double>) -> Self {
-        if ideal.contains(value) { return .inRange }
-        if value < ideal.lowerBound { return .below }
-        return .above
-    }
-
-    var currentStatusPhrase: String {
-        switch self {
-        case .inRange: "Within your target range"
-        case .below: "Below your target range"
-        case .above: "Above your target range"
-        }
-    }
-}
-
 private enum ChartRange: String, CaseIterable {
     case last7Days = "Week"
     case month = "Month"
@@ -531,31 +501,6 @@ struct ChartsScreenView: View {
         !phMarks.isEmpty || !sanitizerMarks.isEmpty
     }
 
-    private var chemistryPeriodSummary: ChemistryPeriodSummary? {
-        let logs = filteredDailyLogs
-        guard !logs.isEmpty else { return nil }
-
-        let phValues = logs.compactMap(\.ph)
-        let phIdeal = phTarget
-        let phLowCount = phValues.filter { $0 < phIdeal.lowerBound }.count
-        let phHighCount = phValues.filter { $0 > phIdeal.upperBound }.count
-
-        let ideal = sanitizerTarget
-        let sanitizerValues = logs.compactMap(\.primarySanitizerPpm)
-        let sanitizerLowCount = sanitizerValues.filter { $0 < ideal.lowerBound }.count
-        let sanitizerHighCount = sanitizerValues.filter { $0 > ideal.upperBound }.count
-
-        return ChemistryPeriodSummary(
-            testsRecorded: logs.count,
-            phReadingCount: phValues.count,
-            phLowCount: phLowCount,
-            phHighCount: phHighCount,
-            sanitizerReadingCount: sanitizerValues.count,
-            sanitizerLowCount: sanitizerLowCount,
-            sanitizerHighCount: sanitizerHighCount
-        )
-    }
-
     private var summaryPeriodPhrase: String {
         switch chartRange {
         case .month:
@@ -567,10 +512,8 @@ struct ChartsScreenView: View {
         }
     }
 
-    private var showsChemistrySummary: Bool {
-        guard let summary = chemistryPeriodSummary else { return false }
-        return summary.testsRecorded > 0
-            && (summary.phReadingCount > 0 || summary.sanitizerReadingCount > 0)
+    private var showsPhTip: Bool {
+        filteredDailyLogs.contains { $0.ph != nil }
     }
 
     private var chemistryChartHeight: CGFloat {
@@ -605,8 +548,8 @@ struct ChartsScreenView: View {
         VStack(alignment: .leading, spacing: AppSpacing.section) {
             periodControls
 
-            if hasData, showsChemistrySummary, let summary = chemistryPeriodSummary {
-                chemistrySummarySection(summary)
+            if hasData, showsPhTip {
+                chemistryTipBanner
             }
 
             if !hasData {
@@ -709,163 +652,6 @@ struct ChartsScreenView: View {
         if !availableChartRanges.contains(chartRange) {
             chartRange = .month
         }
-    }
-
-    private func chemistrySummarySection(_ summary: ChemistryPeriodSummary) -> some View {
-        VStack(spacing: AppSpacing.control) {
-            HStack(alignment: .top, spacing: AppSpacing.control) {
-                if summary.sanitizerReadingCount > 0 {
-                    sanitizerSummaryCard(
-                        lowCount: summary.sanitizerLowCount,
-                        highCount: summary.sanitizerHighCount
-                    )
-                }
-                if summary.phReadingCount > 0 {
-                    phSummaryCard(
-                        lowCount: summary.phLowCount,
-                        highCount: summary.phHighCount
-                    )
-                }
-            }
-
-            if summary.phReadingCount > 0 {
-                chemistryTipBanner
-            }
-        }
-    }
-
-    private func phSummaryCard(lowCount: Int, highCount: Int) -> some View {
-        let outOfRangeCount = lowCount + highCount
-        let latestValue = phMarks.last?.value
-        let currentPosition = latestValue.map {
-            ChemistryRangePosition.from(value: $0, ideal: phTarget)
-        }
-        let currentStatus = latestValue.map { WaterChemistryRanges.readingStatus(value: $0, target: phTarget) }
-        let currentlyInRange = currentPosition == .inRange
-        let accentColor = summaryAccentColor(for: currentStatus, outOfRangeCount: outOfRangeCount)
-
-        return VStack(spacing: 12) {
-            summaryStatusIcon(
-                currentlyInRange: currentlyInRange,
-                accentColor: accentColor,
-                outOfRangeCount: outOfRangeCount
-            )
-
-            Text(phSummaryTitle(currentPosition: currentPosition))
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(palette.color(.textPrimary))
-
-            Text(chemistrySummaryDetail(currentPosition: currentPosition, outOfRangeCount: outOfRangeCount))
-                .font(.caption)
-                .foregroundStyle(palette.color(.textSecondary))
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity)
-        .multilineTextAlignment(.center)
-        .appCard(palette: palette, radius: AppSpacing.cardRadius, padding: 16)
-    }
-
-    private func phSummaryTitle(currentPosition: ChemistryRangePosition?) -> String {
-        switch currentPosition {
-        case .inRange, nil: return "pH within target"
-        case .below: return "pH below target"
-        case .above: return "pH above target"
-        }
-    }
-
-    private func sanitizerSummaryCard(lowCount: Int, highCount: Int) -> some View {
-        let outOfRangeCount = lowCount + highCount
-        let ideal = sanitizerTarget
-        let latestValue = sanitizerMarks.last?.value
-        let currentPosition = latestValue.map {
-            ChemistryRangePosition.from(value: $0, ideal: ideal)
-        }
-        let currentStatus = latestValue.map(sanitizerReadingStatus(for:))
-        let currentlyInRange = currentPosition == .inRange
-        let accentColor = summaryAccentColor(for: currentStatus, outOfRangeCount: outOfRangeCount)
-
-        return VStack(spacing: 12) {
-            summaryStatusIcon(
-                currentlyInRange: currentlyInRange,
-                accentColor: accentColor,
-                outOfRangeCount: outOfRangeCount
-            )
-
-            Text(sanitizerSummaryTitle(currentPosition: currentPosition))
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(palette.color(.textPrimary))
-
-            Text(chemistrySummaryDetail(currentPosition: currentPosition, outOfRangeCount: outOfRangeCount))
-                .font(.caption)
-                .foregroundStyle(palette.color(.textSecondary))
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity)
-        .multilineTextAlignment(.center)
-        .appCard(palette: palette, radius: AppSpacing.cardRadius, padding: 16)
-    }
-
-    private func sanitizerSummaryTitle(currentPosition: ChemistryRangePosition?) -> String {
-        switch currentPosition {
-        case .inRange, nil: return "\(sanitizerLabel) within target"
-        case .below: return "\(sanitizerLabel) below target"
-        case .above: return "\(sanitizerLabel) above target"
-        }
-    }
-
-    @ViewBuilder
-    private func summaryStatusIcon(
-        currentlyInRange: Bool,
-        accentColor: Color,
-        outOfRangeCount: Int
-    ) -> some View {
-        if currentlyInRange {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 40, weight: .semibold))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(accentColor)
-                .frame(height: 72)
-        } else {
-            VStack(spacing: 4) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 28, weight: .semibold))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(accentColor)
-                Text("\(outOfRangeCount)")
-                    .font(.title.weight(.bold))
-                    .foregroundStyle(palette.color(.textPrimary))
-            }
-            .frame(height: 72)
-        }
-    }
-
-    private func summaryAccentColor(
-        for currentStatus: WaterChemistryReadingStatus?,
-        outOfRangeCount: Int
-    ) -> Color {
-        if let currentStatus {
-            return WaterChemistryRanges.statusColor(currentStatus, palette: palette)
-        }
-        if outOfRangeCount == 0 { return palette.color(.accentGreen) }
-        return palette.color(.accentOrange)
-    }
-
-    private func chemistrySummaryDetail(
-        currentPosition: ChemistryRangePosition?,
-        outOfRangeCount: Int
-    ) -> String {
-        guard let currentPosition else {
-            if outOfRangeCount == 0 {
-                return "Currently in range"
-            }
-            return "Out of range \(outOfRangeCount) time\(outOfRangeCount == 1 ? "" : "s") \(summaryPeriodPhrase)"
-        }
-        if outOfRangeCount == 0 {
-            return currentPosition.currentStatusPhrase
-        }
-        return "\(currentPosition.currentStatusPhrase), out of range \(outOfRangeCount) time\(outOfRangeCount == 1 ? "" : "s") \(summaryPeriodPhrase)"
     }
 
     private var chemistryTipBanner: some View {
