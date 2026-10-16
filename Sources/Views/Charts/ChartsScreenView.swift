@@ -512,10 +512,6 @@ struct ChartsScreenView: View {
         }
     }
 
-    private var showsPhTip: Bool {
-        filteredDailyLogs.contains { $0.ph != nil }
-    }
-
     private var chemistryChartHeight: CGFloat {
         usePadLayout ? PadContentLayout.chemistryChartHeightPad : PadContentLayout.chemistryChartHeightPhone
     }
@@ -548,10 +544,6 @@ struct ChartsScreenView: View {
         VStack(alignment: .leading, spacing: AppSpacing.section) {
             periodControls
 
-            if hasData, showsPhTip {
-                chemistryTipBanner
-            }
-
             if !hasData {
                 AppEmptyState(
                     symbol: "calendar",
@@ -564,8 +556,6 @@ struct ChartsScreenView: View {
                     usageChartsSection
                 }
             }
-
-            guideSection
         }
     }
 
@@ -594,102 +584,10 @@ struct ChartsScreenView: View {
         }
     }
 
-    @ViewBuilder
-    private var guideSection: some View {
-        if usePadLayout {
-            LazyVGrid(
-                columns: [
-                    GridItem(.flexible(), spacing: AppSpacing.control),
-                    GridItem(.flexible(), spacing: AppSpacing.control),
-                    GridItem(.flexible(), spacing: AppSpacing.control),
-                ],
-                spacing: AppSpacing.control
-            ) {
-                chartsGuideCard(
-                    title: "\(sanitizerLabel) Guide",
-                    symbol: "drop.fill",
-                    color: palette.color(.accentBlue),
-                    bullets: sanitizerGuideBullets
-                )
-                chartsGuideCard(
-                    title: "pH Guide",
-                    symbol: "testtube.2",
-                    color: palette.color(.accentGreen),
-                    bullets: phGuideBullets
-                )
-                chartsGuideCard(
-                    title: "Usage Guide",
-                    symbol: "person.2.fill",
-                    color: palette.color(.accentOrange),
-                    bullets: usageGuideBullets
-                )
-            }
-        } else {
-            VStack(alignment: .leading, spacing: AppSpacing.control) {
-                chartsGuideCard(
-                    title: "\(sanitizerLabel) Guide",
-                    symbol: "drop.fill",
-                    color: palette.color(.accentBlue),
-                    bullets: sanitizerGuideBullets
-                )
-                chartsGuideCard(
-                    title: "pH Guide",
-                    symbol: "testtube.2",
-                    color: palette.color(.accentGreen),
-                    bullets: phGuideBullets
-                )
-                chartsGuideCard(
-                    title: "Usage Guide",
-                    symbol: "person.2.fill",
-                    color: palette.color(.accentOrange),
-                    bullets: usageGuideBullets
-                )
-            }
-        }
-    }
-
     private func clampChartRangeIfNeeded() {
         if !availableChartRanges.contains(chartRange) {
             chartRange = .month
         }
-    }
-
-    private var chemistryTipBanner: some View {
-        Button {
-            presentedHelp = .ph(.overview)
-        } label: {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "lightbulb")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(palette.color(.accentBlue))
-                    .frame(width: 24)
-
-                Text(tipBannerText)
-                    .font(.caption)
-                    .foregroundStyle(palette.color(.textPrimary))
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(palette.color(.textTertiary))
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: AppSpacing.cardRadius, style: .continuous)
-                    .fill(palette.color(.tagBlueFill))
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var tipBannerText: AttributedString {
-        var tip = AttributedString("Tip ")
-        tip.font = .caption.weight(.semibold)
-        var body = AttributedString("Your saved pH target is \(WaterChemistryRanges.targetLabel(phTarget)).")
-        body.font = .caption
-        return tip + body
     }
 
     private var periodControls: some View {
@@ -998,6 +896,8 @@ struct ChartsScreenView: View {
         return compactChemistryChart(
             title: sanitizerLabel,
             subtitle: subtitle,
+            tips: sanitizerGuideBullets,
+            helpRequest: .sanitizer(.overview),
             marks: sanitizerMarks,
             idealRange: ideal,
             yDomain: sanitizerYDomain,
@@ -1015,6 +915,8 @@ struct ChartsScreenView: View {
         compactChemistryChart(
             title: "pH",
             subtitle: "Your target \(WaterChemistryRanges.targetLabel(phTarget))",
+            tips: phGuideBullets,
+            helpRequest: .ph(.overview),
             marks: phMarks,
             idealRange: phTarget,
             yDomain: phYDomain,
@@ -1046,6 +948,8 @@ struct ChartsScreenView: View {
     private func compactChemistryChart(
         title: String,
         subtitle: String,
+        tips: [String],
+        helpRequest: HelpSheetRequest,
         marks: [ChartPoint],
         idealRange: ClosedRange<Double>,
         yDomain: ClosedRange<Double>,
@@ -1053,7 +957,7 @@ struct ChartsScreenView: View {
         status: @escaping (Double) -> WaterChemistryReadingStatus,
         emptyMessage: String
     ) -> some View {
-        chartCard(title: title) {
+        chartCard(title: title, tips: tips, helpRequest: helpRequest) {
             if marks.isEmpty {
                 Text(emptyMessage)
                     .font(.caption)
@@ -1202,7 +1106,7 @@ struct ChartsScreenView: View {
 
     private var usersChart: some View {
         let barPoints = usageBarPoints
-        return chartCard(title: "Hot tub use per day", subtitle: usageChartSubtitle) {
+        return chartCard(title: "Hot tub use per day", subtitle: usageChartSubtitle, tips: usageGuideBullets) {
             if barPoints.isEmpty {
                 Text("No usage logs from \(noDataPeriodPhrase)")
                     .font(.caption)
@@ -1252,27 +1156,92 @@ struct ChartsScreenView: View {
         ]
     }
 
-    private func chartsGuideCard(
+    private func chartCard<Content: View>(
         title: String,
-        symbol: String,
-        color: Color,
-        bullets: [String]
+        subtitle: String? = nil,
+        tips: [String] = [],
+        helpRequest: HelpSheetRequest? = nil,
+        @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.control) {
+            HStack(alignment: .top, spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(palette.color(.textPrimary))
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundStyle(palette.color(.textSecondary))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                if !tips.isEmpty {
+                    ChartTipsButton(
+                        title: title,
+                        bullets: tips,
+                        helpRequest: helpRequest,
+                        presentedHelp: $presentedHelp
+                    )
+                }
+            }
+            content()
+        }
+        .appCard(palette: palette, radius: AppSpacing.largeCardRadius)
+    }
+}
+
+private struct ChartTipsButton: View {
+    let title: String
+    let bullets: [String]
+    var helpRequest: HelpSheetRequest?
+    @Binding var presentedHelp: HelpSheetRequest?
+
+    @State private var isPresented = false
+    @Environment(\.appPalette) private var palette
+
+    var body: some View {
+        Button {
+            isPresented = true
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "lightbulb")
+                Text("Tip")
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(palette.color(.accentBlue))
+            .padding(.horizontal, 12)
+            .frame(minHeight: 32)
+            .background(Capsule().fill(palette.color(.tagBlueFill)))
+            .frame(minWidth: 44, minHeight: 44, alignment: .top)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(title) tips")
+        .popover(isPresented: $isPresented, arrowEdge: .top) {
+            tipPopover
+                .presentationCompactAdaptation(.popover)
+        }
+    }
+
+    private var tipPopover: some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
-                Image(systemName: symbol)
+                Image(systemName: "lightbulb")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(color)
-                Text(title)
+                    .foregroundStyle(palette.color(.accentBlue))
+                Text("Tips")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(palette.color(.textPrimary))
             }
+
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(bullets, id: \.self) { bullet in
                     HStack(alignment: .top, spacing: 8) {
                         Text("•")
                             .font(.caption)
-                            .foregroundStyle(color)
+                            .foregroundStyle(palette.color(.accentBlue))
                         Text(bullet)
                             .font(.caption)
                             .foregroundStyle(palette.color(.textSecondary))
@@ -1280,29 +1249,25 @@ struct ChartsScreenView: View {
                     }
                 }
             }
-        }
-        .appCard(palette: palette)
-    }
 
-    private func chartCard<Content: View>(
-        title: String,
-        subtitle: String? = nil,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.control) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundStyle(palette.color(.textPrimary))
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(palette.color(.textSecondary))
+            if let helpRequest {
+                Button {
+                    let request = helpRequest
+                    isPresented = false
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(250))
+                        presentedHelp = request
+                    }
+                } label: {
+                    Text("Open guide")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(palette.color(.accentBlue))
                 }
+                .buttonStyle(.plain)
             }
-            content()
         }
-        .appCard(palette: palette, radius: AppSpacing.largeCardRadius)
+        .padding(16)
+        .frame(width: 280, alignment: .leading)
     }
 }
 

@@ -84,7 +84,7 @@ private final class CalendarDoubleClickMonitor: NSObject, UIGestureRecognizerDel
     static let shared = CalendarDoubleClickMonitor()
 
     private var clientCount = 0
-    private var recognizers: [ObjectIdentifier: UITapGestureRecognizer] = [:]
+    private var recognizers: [ObjectIdentifier: PopoverDoubleClickRecognizer] = [:]
     private var windowObserver: NSObjectProtocol?
 
     func retainClient() {
@@ -128,17 +128,11 @@ private final class CalendarDoubleClickMonitor: NSObject, UIGestureRecognizerDel
         true
     }
 
-    nonisolated func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        MainActor.assumeIsolated {
-            guard let view = touch.view else { return false }
-            return Self.containsCalendar(view)
-        }
-    }
-
-    @objc private func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
+    @objc private func handleDoubleTap(_ recognizer: UIGestureRecognizer) {
         guard let window = recognizer.view else { return }
         let point = recognizer.location(in: window)
-        guard let hit = window.hitTest(point, with: nil), Self.containsCalendar(hit) else { return }
+        guard let hit = window.hitTest(point, with: nil), Self.isCalendarTarget(hit) else { return }
+        Self.dismissPopover(containing: hit)
         NotificationCenter.default.post(name: .compactDatePickerCalendarDoubleClick, object: nil)
     }
 
@@ -156,9 +150,7 @@ private final class CalendarDoubleClickMonitor: NSObject, UIGestureRecognizerDel
         let id = ObjectIdentifier(window)
         guard recognizers[id] == nil else { return }
 
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
-        tap.numberOfTapsRequired = 2
-        tap.numberOfTouchesRequired = 1
+        let tap = PopoverDoubleClickRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
         tap.cancelsTouchesInView = false
         tap.delaysTouchesBegan = false
         tap.delaysTouchesEnded = false
@@ -167,7 +159,7 @@ private final class CalendarDoubleClickMonitor: NSObject, UIGestureRecognizerDel
         recognizers[id] = tap
     }
 
-    private static func containsCalendar(_ view: UIView) -> Bool {
+    fileprivate static func isCalendarTarget(_ view: UIView) -> Bool {
         var current: UIView? = view
         while let candidate = current {
             if candidate is UICalendarView { return true }
@@ -179,6 +171,67 @@ private final class CalendarDoubleClickMonitor: NSObject, UIGestureRecognizerDel
             }
             current = candidate.superview
         }
+        return isInsidePopover(view)
+    }
+
+    private static func isInsidePopover(_ view: UIView) -> Bool {
+        var responder: UIResponder? = view
+        while let current = responder {
+            if let controller = current as? UIViewController {
+                if controller.popoverPresentationController != nil { return true }
+                if controller.modalPresentationStyle == .popover { return true }
+            }
+            responder = current.next
+        }
         return false
+    }
+
+    private static func dismissPopover(containing view: UIView) {
+        var responder: UIResponder? = view
+        while let current = responder {
+            if let controller = current as? UIViewController,
+               controller.presentingViewController != nil,
+               controller.popoverPresentationController != nil || controller.modalPresentationStyle == .popover {
+                controller.dismiss(animated: true)
+                return
+            }
+            responder = current.next
+        }
+    }
+}
+
+/// Sees a second click even when the calendar's own gestures would cancel a normal double-tap recognizer.
+private final class PopoverDoubleClickRecognizer: UIGestureRecognizer {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        guard touches.count == 1, let view = touches.first?.view else {
+            state = .failed
+            return
+        }
+        let interested = MainActor.assumeIsolated {
+            CalendarDoubleClickMonitor.isCalendarTarget(view)
+        }
+        if !interested {
+            state = .failed
+        }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        if (touches.first?.tapCount ?? 0) >= 2 {
+            state = .recognized
+        } else {
+            state = .failed
+        }
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        state = .cancelled
+    }
+
+    override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool {
+        false
+    }
+
+    override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool {
+        false
     }
 }
