@@ -45,7 +45,7 @@ enum ActivityLogKind: String, CaseIterable, Identifiable {
         switch self {
         case .daily: "Record water test"
         case .weekly: "Full water check"
-        case .maintenance: "Record"
+        case .maintenance: "Service"
         case .usage: "Log hot-tub usage"
         }
     }

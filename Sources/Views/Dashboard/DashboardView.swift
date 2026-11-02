@@ -572,7 +572,7 @@ struct DashboardView: View {
                 MaintenanceLogFormView()
             } label: {
                 subActionTile(
-                    title: "Record",
+                    title: "Service",
                     systemImage: ActivityLogKind.maintenance.systemImage,
                     fillToken: ActivityLogKind.maintenance.fillToken,
                     iconToken: ActivityLogKind.maintenance.iconToken
